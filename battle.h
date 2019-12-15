@@ -7,11 +7,6 @@ class Battle {
 		Battle();
 		~Battle();
 		void start();
-		void initBoard(vector<vector<int>> &board);
-		void displayBoard(vector<vector<int>> &board);
-		bool tryHit(int, int);
-		bool cmpHit();
-		bool checkGameover();
 	private:
 		int xSize;
 		int ySize;
@@ -19,4 +14,9 @@ class Battle {
 		vector<vector<int>> cmpBrd;
 		vector<vector<int>> blankBrd;
 		string exitMsg;
+		void initBoard(vector<vector<int>> &board);
+		void displayBoard(vector<vector<int>> &board);
+		bool tryHit(int, int);
+		bool cmpHit();
+		bool checkGameover();
 };
