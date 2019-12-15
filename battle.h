@@ -6,19 +6,17 @@ class Battle {
 	public:
 		Battle();
 		~Battle();
-		bool Hit(int, int);
+		void start();
+		void initBoard(vector<vector<int>> &board);
+		void displayBoard(vector<vector<int>> &board);
+		bool tryHit(int, int);
 		bool cmpHit();
-		void Display();
-		void addCarriers();
-		void Menu();
-		bool Gameover();
+		bool checkGameover();
 	private:
 		int xSize;
 		int ySize;
 		vector<vector<int>> usrBrd;
 		vector<vector<int>> cmpBrd;
 		vector<vector<int>> blankBrd;
-		string winMsg;
-		string cmpHitMsg;
-		bool isCmpHit;
+		string exitMsg;
 };

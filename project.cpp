@@ -1,4 +1,3 @@
-// Juan Pablo Mantica
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -10,12 +9,11 @@ using namespace std;
 
 
 int main() {
-	Battle game;
+	// rand number generator algorithm seed 
 	srand(time(0));
-	game.addCarriers();
-	game.Menu();
+	// start battle
+	Battle battle;
+	battle.start();
 
 	return 0;
 }
-	
-	
