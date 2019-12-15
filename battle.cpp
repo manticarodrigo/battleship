@@ -79,7 +79,7 @@ void Battle::start() {
 					displayBoard(usrBrd);
 					break;
 				case 3:
-					displayBoard(cmpBrd);
+					displayBoard(blankBrd);
 					break;
 				case 4:
 					play = 'q';
