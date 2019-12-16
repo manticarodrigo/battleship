@@ -22,6 +22,5 @@ class Battle {
 		void displayBoard(vector<vector<int>> &board);
 		bool tryUsrHit(int, int);
 		bool tryCpuHit();
-		void resetCpuHunt();
 		bool isGameover();
 };

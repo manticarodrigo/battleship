@@ -4,7 +4,7 @@
 #include"battle.h"
 #include<vector>
 #include<string>
-#include <map>
+#include<map>
 using namespace std;
 
 int MAX_BOAT_SIZE = 5;
@@ -87,9 +87,6 @@ void Battle::start() {
 				case 4:
 					play = 'q';
 					break;
-				case 5:
-					cout << "CPU HITS:" << endl;
-					cout << cpuHits << endl;
 				default:
 					c = 0;
 					break;
@@ -97,9 +94,16 @@ void Battle::start() {
 		}
 	}
 
+	// print game ending messages
 	cout << "***************************************" << endl;
 	cout << exitMsg << endl;
 	cout << "***************************************" << endl;
+	cout << "\n" << endl;
+	cout << "My Board" << endl;
+	displayBoard(usrBoard);
+	cout << "\n" << endl;
+	cout << "CPU's Board" << endl;
+	displayBoard(cpuBoard);
 }
 
 
@@ -146,8 +150,8 @@ void Battle::initBoard(vector<vector<int>> &board) {
 }
 
 void Battle::displayBoard(vector<vector<int>> &board) {
-	for(int i = 0; i < ySize; i++){
-		for(int j = 0; j < xSize; j++){
+	for (int i = 0; i < ySize; i++) {
+		for (int j = 0; j < xSize; j++) {
 			cout << board[j][i] << " ";
 		}
 		cout << endl;
@@ -172,6 +176,8 @@ bool Battle::tryUsrHit(int x, int y) {
 			usrHits += 1;
 			break;
 		default:
+			// allow parent loop to re-run
+			isHit = true;
 			msg = "*USER: You have already made this shot. Choose another coordinate.";
 			break;
 	}
@@ -209,6 +215,8 @@ bool Battle::tryCpuHit() {
 			cpuHits += 1;
 			msg = "*CPU: The computer has hit one of your ships!.";
 
+			// add valid surrounding points to hunt stack
+
 			if (x < xSize - 1) {
 				map<char, int> point = {
 					{ 'x', x + 1 },
@@ -242,7 +250,7 @@ bool Battle::tryCpuHit() {
 			}
 			break;
 		default:
-			// allow program to re-run if cpu already tried this hit.
+			// allow parent loop to re-run
 			isHit = true;
 			break;
 	}
@@ -253,19 +261,15 @@ bool Battle::tryCpuHit() {
 }
 
 bool Battle::isGameover() {
-	switch (usrHits) {
-		case 14:
-			exitMsg = "Congratulations! You sunk all of your enemy's ships!";
-			return true;
-		default:
-			return false;
+	if (usrHits == 14) {
+		exitMsg = "Congratulations! You sunk all of your enemy's ships!";
+		return true;
 	}
 
-	switch (cpuHits) {
-		case 14:
-			exitMsg = "Your enemy sunk all of your ships. You have lost.";
-			return true;
-		default:
-			return false;
+	if (cpuHits == 14) {
+		exitMsg = "Your enemy sunk all of your ships. You have lost.";
+		return true;
 	}
+
+	return false;
 }
