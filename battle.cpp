@@ -1,18 +1,20 @@
-// Juan Pablo Mantica
 #include<iostream>
 #include<iomanip>
 #include<stdlib.h>
 #include"battle.h"
 #include<vector>
 #include<string>
+#include <map>
 using namespace std;
 
-int usrHits = 0;
-int cmpHits = 0;
+int MAX_BOAT_SIZE = 5;
 
 Battle::Battle() {
 	xSize = 10;
 	ySize = 10;
+	usrHits = 0;
+	cpuHits = 0;
+
 	exitMsg = "Game has ended early. Thanks for playing!";
 
 	for (int i = 0; i < ySize; i++) {
@@ -21,27 +23,28 @@ Battle::Battle() {
 		for (int j = 0; j < xSize; j++) {
 			temp.push_back(0);
 		}
-		usrBrd.push_back(temp);
-		cmpBrd.push_back(temp);
-		blankBrd.push_back(temp);
+
+		usrBoard.push_back(temp);
+		cpuBoard.push_back(temp);
+		protectedBoard.push_back(temp);
 	}
 }
 
 Battle::~Battle() {}
 
 void Battle::start() {
-	initBoard(usrBrd);
-	initBoard(cmpBrd);
+	initBoard(usrBoard);
+	initBoard(cpuBoard);
 
 	char play = 'a';
 	int c = 0;
 	int x, y;
 
-	while (play != 'q' && !checkGameover()) {
+	while (play != 'q' && !isGameover()) {
 		cout << "Welcome to Battleship! Enter any key to play." << endl;
 		cin >> play;
 
-		while (c != 4 && !checkGameover()) {				
+		while (c != 4 && !isGameover()) {				
 			cout << "\n" << endl;
 			cout << "Game Options:" << endl;
 			cout << "" << endl;
@@ -55,7 +58,7 @@ void Battle::start() {
 			if (!cin) {
 				// user didn't input a number
 				cin.clear(); // reset failbit
-				cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip bad input
+				cin.ignore(numeric_limits<streamsize>::max(), '\n'); //skip bad input
 				// next, request user reinput
 			}
 
@@ -64,8 +67,8 @@ void Battle::start() {
 					cout << "Enter coordinates:";
 					cin >> x >> y;
 
-					while (tryHit((x - 1), (y - 1))) {
-						if (checkGameover()) {
+					while (tryUsrHit((x - 1), (y - 1))) {
+						if (isGameover()) {
 							break;
 						}
 
@@ -73,17 +76,20 @@ void Battle::start() {
 						cin >> x >> y;
 					}
 
-					while (!checkGameover() && cmpHit()) {}
+					while (!isGameover() && tryCpuHit()) {}
 					break;
 				case 2:
-					displayBoard(usrBrd);
+					displayBoard(usrBoard);
 					break;
 				case 3:
-					displayBoard(blankBrd);
+					displayBoard(protectedBoard);
 					break;
 				case 4:
 					play = 'q';
 					break;
+				case 5:
+					cout << "CPU HITS:" << endl;
+					cout << cpuHits << endl;
 				default:
 					c = 0;
 					break;
@@ -100,7 +106,7 @@ void Battle::start() {
 void Battle::initBoard(vector<vector<int>> &board) {
 	int x, y, d;
 
-	for (int i = 4; i > 0; i--) {
+	for (int i = MAX_BOAT_SIZE - 1; i > 0; i--) {
 		bool isValidCoordinate = false;
 
 		while (!isValidCoordinate) {
@@ -111,20 +117,20 @@ void Battle::initBoard(vector<vector<int>> &board) {
 			d = rand() % 2;
 
 			if ((d==0) && (x + i < 10)) {
-				for (int j = x; j <= x+i; j++) {
+				for (int j = x; j <= x + i; j++) {
 					if (board[j][y] == 1) {
 						isValidCoordinate = false;
 					}
 				}
 			} else if ((d == 1) && (y + i < 10)) {
-				for (int k = y; k <= y+i; k++) {
+				for (int k = y; k <= y + i; k++) {
 					if (board[x][k] == 1) {
 						isValidCoordinate = false;
 					}
 				}
 			}	else {
 				isValidCoordinate = false;
-			} 
+			}
 		}
 
 		if (d == 0) {
@@ -148,25 +154,25 @@ void Battle::displayBoard(vector<vector<int>> &board) {
 	}
 }
 
-bool Battle::tryHit(int x, int y) {
+bool Battle::tryUsrHit(int x, int y) {
 	bool isHit = false;
 	string msg = "";
 
-	switch(cmpBrd[x][y]){
+	switch(cpuBoard[x][y]) {
 		case 0:
-			msg = "** Oops! It seems like you did not hit anything.";
-			cmpBrd[x][y] = 2;
-			blankBrd[x][y] = 2;
+			msg = "*USER: Oops! It seems like you did not hit anything.";
+			cpuBoard[x][y] = 2;
+			protectedBoard[x][y] = 2;
 			break;
 		case 1:
 			isHit = true;
-			msg = "** Nice hit! Continue shooting.";
-			cmpBrd[x][y] = 3;
-			blankBrd[x][y] = 3;
+			msg = "*USER: Nice hit! Continue shooting.";
+			cpuBoard[x][y] = 3;
+			protectedBoard[x][y] = 3;
 			usrHits += 1;
 			break;
 		default:
-			msg = "** You have already made this shot. Choose another coordinate.";
+			msg = "*USER: You have already made this shot. Choose another coordinate.";
 			break;
 	}
 	
@@ -174,23 +180,70 @@ bool Battle::tryHit(int x, int y) {
 	return isHit;
 }
 
-bool Battle::cmpHit() {
+bool Battle::tryCpuHit() {
 	bool isHit;
-	int cmpX = rand() % 10;
-	int cmpY = rand() % 10;
 	string msg = "";
 
-	switch(usrBrd[cmpX][cmpY]) {
+	int x = rand() % 10;
+	int y = rand() % 10;
+
+	int huntStackSize = cpuHuntStack.size();
+
+	if (huntStackSize > 0) {
+		x = cpuHuntStack.back()['x'];
+		y = cpuHuntStack.back()['y'];
+
+		cpuHuntStack.pop_back();
+	}
+
+	switch(usrBoard[x][y]) {
 		case 0:
 			isHit = false;
-			usrBrd[cmpX][cmpY] = 2;
-			msg = "** The computer has missed. Shoot your shot.";
+			usrBoard[x][y] = 2;
+			msg = "*CPU: The computer has missed. Shoot your shot.";
+
 			break;
 		case 1:
 			isHit = true;
-			usrBrd[cmpX][cmpY] = 3;
-			cmpHits += 1;
-			msg = "** The computer has hit one of your ships!.";
+			usrBoard[x][y] = 3;
+			cpuHits += 1;
+			msg = "*CPU: The computer has hit one of your ships!.";
+
+			if (x < xSize - 1) {
+				map<char, int> point = {
+					{ 'x', x + 1 },
+					{ 'y', y },
+				};
+				cpuHuntStack.push_back(point);
+			}
+
+			if (x > 0) {
+				map<char, int> point = {
+					{ 'x', x - 1 },
+					{ 'y', y },
+				};
+				cpuHuntStack.push_back(point);
+			}
+
+			if (y < ySize - 1) {
+				map<char, int> point = {
+					{ 'x', x },
+					{ 'y', y + 1},
+				};
+				cpuHuntStack.push_back(point);
+			}
+
+			if (y > 0) {
+				map<char, int> point = {
+					{ 'x', x },
+					{ 'y', y - 1 },
+				};
+				cpuHuntStack.push_back(point);
+			}
+			break;
+		default:
+			// allow program to re-run if cpu already tried this hit.
+			isHit = true;
 			break;
 	}
 
@@ -199,18 +252,18 @@ bool Battle::cmpHit() {
 	return isHit;
 }
 
-bool Battle::checkGameover() {
+bool Battle::isGameover() {
 	switch (usrHits) {
 		case 14:
-			exitMsg = "Congratulations! You have sunken all of your enemy's ships!";
+			exitMsg = "Congratulations! You sunk all of your enemy's ships!";
 			return true;
 		default:
 			return false;
 	}
 
-	switch(cmpHits) {
+	switch (cpuHits) {
 		case 14:
-			exitMsg = "Your enemy has sunken all of your ships. You have lost.";
+			exitMsg = "Your enemy sunk all of your ships. You have lost.";
 			return true;
 		default:
 			return false;

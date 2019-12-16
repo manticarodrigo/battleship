@@ -1,3 +1,4 @@
+#include<map>
 #include<vector>
 #include<string>
 using namespace std;
@@ -10,13 +11,17 @@ class Battle {
 	private:
 		int xSize;
 		int ySize;
-		vector<vector<int>> usrBrd;
-		vector<vector<int>> cmpBrd;
-		vector<vector<int>> blankBrd;
+		int usrHits;
+		int cpuHits;
+		vector<map<char, int>> cpuHuntStack;
+		vector<vector<int>> usrBoard;
+		vector<vector<int>> cpuBoard;
+		vector<vector<int>> protectedBoard;
 		string exitMsg;
 		void initBoard(vector<vector<int>> &board);
 		void displayBoard(vector<vector<int>> &board);
-		bool tryHit(int, int);
-		bool cmpHit();
-		bool checkGameover();
+		bool tryUsrHit(int, int);
+		bool tryCpuHit();
+		void resetCpuHunt();
+		bool isGameover();
 };
